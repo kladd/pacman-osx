@@ -4,6 +4,10 @@ These are notes for compiling and installing pacman on Mac OS X. This has
 only been tested on Mac OS X Mountain Lion. At the moment no code patches
 are necessary so these notes are mostly for managing missing dependencies.
 
+A small (but growing) repo of OS X compatible packages are located at:
+
+     http://github.com/kladd/pacman-osx-pkgs
+
 DOWNLOADING:
 
   Download the source code with git:
