@@ -20,6 +20,9 @@ This way, nothing I install will interfere with the OS X default installations.
 I've elected to install Pacman to to `/usr/local`. This is also the
 directory I'll be using for packages installed by Pacman.
 
+An automated install script is available here:
+[install.sh](https://github.com/kladd/pacman-osx/blob/master/install.sh)
+
 ##### 1. gettext
 
 OS X comes with gettext by default but this installation doesn't include `autopoint`.
@@ -171,4 +174,3 @@ make install
 make -C contrib install
 ```
 
-TODO: Write a script that automates all this.
