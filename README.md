@@ -23,6 +23,9 @@ directory I'll be using for packages installed by Pacman.
 An automated install script is available here:
 [install.sh](https://github.com/kladd/pacman-osx/blob/master/install.sh)
 
+PKGBUILDs for Pacman on OS X are located in
+[this repo](https://github.com/kladd/pacman-osx-pkgs).
+
 ##### 1. gettext
 
 OS X comes with gettext by default but this installation doesn't include `autopoint`.
@@ -149,6 +152,25 @@ make
 make install
 ```
 
+#### 9. fakeroot
+
+This is not actually necessary to compile Pacman. However, it is necessary
+to build packages once Pacman has been installed. It's recommended that you
+install this either before or after compiling Pacman for the first time, then
+again with the darwin-fakeroot package in the
+[pacman-osx-pkgs repo](http://github.com/kladd/pacman-osx-pkgs).
+
+
+```bash
+curl -O https://github.com/duskwuff/darwin-fakeroot/archive/v1.1.tar.gz
+curl -O https://raw.githubusercontent.com/kladd/pacman-osx-pkgs/master/darwin-fakeroot/darwin-fakeroot.patch
+
+patch -Np0 < $srcdir/darwin-fakeroot.patch
+
+# Defaults to /usr/local
+make PREFIX=$HOME/pacman-deps install
+```
+
 ### Downloading the Pacman source
 
 ```bash
@@ -173,4 +195,10 @@ make -C contrib
 make install
 make -C contrib install
 ```
+
+### Fallacies & Pitfalls
+
+- Once you've started using pacman to install packages, some of the software
+  we built just now will need to be overridden by using the `--force` option
+  with pacman.
 
