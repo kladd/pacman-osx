@@ -12,159 +12,122 @@ PACMANPREFIX=/usr/local
 
 function in_parallel()
 {
-	declare -a args=("${!1}")
+	declare -a pargs=("${!1}")
 
-	for ((i = 0; i < ${#args[@]}; i++)); do
-		eval "${args[$i]}" &
+	for ((i = 0; i < ${#pargs[@]}; i++)); do
+		eval "${pargs[$i]}" &
 	done
 
 	wait
 }
 
+function in_serial()
+{
+	declare -a sargs=("${!1}")
+
+	for ((i = 0; i < ${#sargs[@]}; i++)); do
+		eval "${sargs[$i]}"
+		# echo "${sargs[$i]}"
+	done
+}
+
 function main()
 {
-	local tmpdir=$(mktemp -d /tmp/tmp.XXXXXX)
-	pushd $tmpdir
+	tmpdir=$(mktemp -d /tmp/tmp.XXXXXX)
+	PATH=$tmpdir/bin:$PATH
 
-	local gettext=$(cat <<EOF
-PATH=$tmpdir/bin:$PATH
-curl -O https://ftp.gnu.org/gnu/gettext/gettext-0.19.2.tar.xz
-
-tar -xJvf gettext-0.19.2.tar.xz
-cd gettext-0.19.2
-
-./configure --prefix=$tmpdir
-make
-make install
-EOF
+	download_sources=(
+		"curl -O https://ftp.gnu.org/gnu/gettext/gettext-0.19.2.tar.xz"
+		"curl -O http://ftp.gnu.org/gnu/automake/automake-1.14.1.tar.gz"
+		"curl -O http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz"
+		"curl -O http://pkgconfig.freedesktop.org/releases/pkg-config-0.28.tar.gz"
+		"curl -O http://ftp.gnu.org/gnu/libtool/libtool-2.4.2.tar.gz"
+		"curl -O http://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz"
+		"curl -LO https://github.com/libarchive/libarchive/archive/v2.8.3.tar.gz"
+		"curl -LO http://downloads.sourceforge.net/project/asciidoc/asciidoc/8.6.9/asciidoc-8.6.9.tar.gz"
+		"git clone git://projects.archlinux.org/pacman.git"
+		"git clone git://github.com/kladd/pacman-osx-pkgs.git"
 	)
 
-	local automake=$(cat <<EOF
-PATH=$tmpdir/bin:$PATH
-curl -O http://ftp.gnu.org/gnu/automake/automake-1.14.1.tar.gz
-
-tar -xzvf automake-1.14.1.tar.gz
-cd automake-1.14.1
-
-./configure --prefix=$tmpdir
-make
-make install
-EOF
+	extract_sources=(
+		"tar -xJvf gettext-0.19.2.tar.xz"
+		"tar -xzvf automake-1.14.1.tar.gz"
+		"tar -xzvf autoconf-2.69.tar.gz"
+		"tar -xzvf pkg-config-0.28.tar.gz"
+		"tar -xzvf libtool-2.4.2.tar.gz"
+		"tar -xzvf bash-4.3.tar.gz"
+		"tar -xzvf v2.8.3.tar.gz"
+		"tar -xzvf asciidoc-8.6.9.tar.gz"
 	)
 
-	local autoconf=$(cat <<EOF
-PATH=$tmpdir/bin:$PATH
-curl -O http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
 
-tar -xzvf autoconf-2.69.tar.gz
-cd autoconf-2.69
+	# Download package sources
+	echo "Downloading dependencies..."
+	in_parallel download_sources[@]
 
-./configure --prefix=$tmpdir
-make
-make install
-EOF
-	)
+	# Extract sources
+	echo "Extracting dependencies..."
+	in_parallel extract_sources[@]
 
-	local pkg_config=$(cat <<EOF
-PATH=$tmpdir/bin:$PATH
-http://pkgconfig.freedesktop.org/releases/pkg-config-0.28.tar.gz
 
-tar -xzvf pkg-config-0.28.tar.gz
-cd pkg-config-0.28
+	pushd $tmpdir/gettext-0.19.2 || exit
+	./configure --prefix=$tmpdir
+	make
+	make install
+	popd
 
-./configure --prefix=$tmpdir
-make
-make install
-EOF
-	)
+	pushd $tmpdir/automake-1.14.1 || exit
+	./configure --prefix=$tmpdir
+	make
+	make install
+	popd
 
-	local libtool=$(cat <<EOF
-PATH=$tmpdir/bin:$PATH
-curl -O http://ftp.gnu.org/gnu/libtool/libtool-2.4.2.tar.gz
+	pushd $tmpdir/autoconf-2.69 || exit
+	./configure --prefix=$tmpdir
+	make
+	make install
+	popd
 
-tar -xzvf libtool-2.4.2.tar.gz
-cd libtool-2.4.2
+	pushd $tmpdir/pkg-config-0.28 || exit
+	./configure --prefix=$tmpdir
+	make
+	make install
+	popd
 
-./configure --prefix=$tmpdir
-make
-make install
-EOF
-	)
+	pushd $tmpdir/libtool-2.4.2 || exit
+	./configure --prefix=$tmpdir
+	make
+	make install
+	popd
 
-	local bash=$(cat <<EOF
-PATH=$tmpdir/bin:$PATH
-curl -O http://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz
+	pushd $tmpdir/bash-4.3 || exit
+	./configure --prefix=$tmpdir
+	make
+	make install
+	popd
 
-tar -xzvf bash-4.3.tar.gz
-cd bash-4.3
+	pushd $tmpdir/libarchive-2.8.3 || exit
+	./build/autogen.sh
+	./configure --prefix=$tmpdir
+	make
+	make install
+	popd
 
-./configure --prefix=$tmpdir
-make
-make install
-EOF
-	)
-
-	local libarchive=$(cat <<EOF
-PATH=$tmpdir/bin:$PATH
-curl -LO https://github.com/libarchive/libarchive/archive/v2.8.3.tar.gz
-tar -xzvf v2.8.3.tar.gz
-cd libarchive-2.8.3
-
-./build/autogen.sh
-./configure --prefix=$tmpdir
-make
-make install
-EOF
-	)
-
-	local asciidoc=$(cat <<EOF
-PATH=$tmpdir/bin:$PATH
-curl -LO http://downloads.sourceforge.net/project/asciidoc/asciidoc/8.6.9/asciidoc-8.6.9.tar.gz
-
-tar -xzvf asciidoc-8.6.9.tar.gz
-cd asciidoc-8.6.8
-
-./configure --prefix=$tmpdir
-make
-make install
-EOF
-	)
-
-	local fetch_pacman=$(cat <<EOF
-git clone git://projects.archlinux.org/pacman.git
-EOF
-	)
-
-	install_round_1=(
-		"$gettext"
-		"$automake"
-		"$autoconf"
-		"$fetch_pacman"
-	)
-	install_round_2=(
-		"$pkg_config"
-		"$libtool"
-		"$bash"
-		"$libarchive"
-		"$asciidoc"
-	)
-	
-	# These hopefully are all independent of each other and everything in round 2
-	in_parallel install_round_1[@]
-
-	# These may or may not depend on something in round 1
-	in_parallel install_round_2[@]
+	pushd $tmpdir/asciidoc-8.6.9 || exit
+	./configure --prefix=$tmpdir
+	make
+	make install
+	popd
 
 	# compile Pacman
-	cd pacman
-	PATH=$tmpdir/bin:$PATH
+	pushd $tmpdir/pacman
 	LIBARCHIVE_CFLAGS="-I$tmpdir/include"
 	LIBARCHIVE_LIBS="-larchive"
 	LIBCURL_CFLAGS="-I/usr/include/curl"
 	LIBCURL_LIBS="-lcurl"
 
-	./autogen.sh
-	./configure --prefix=$PACMANPREFIX \
+	PATH=$tmpdir/bin:$PATH ./autogen.sh
+	PATH=$tmpdir/bin:$PATH ./configure --prefix=$PACMANPREFIX \
 		--enable-doc \
 		--with-scriptlet-shell=$tmpdir/bin/bash \
 		--with-curl
@@ -172,11 +135,22 @@ EOF
 	make -C contrib
 	make install
 	make -C contrib install
-
 	popd
 }
 
 echo "This is going to look really ugly..."
 main
-PATH=$PACMANPREFIX/bin:$PATH pacman --version
+$PACMANPREFIX/bin/pacman --version
+
+cat << EOF
+
+With pacman now installed, you should use it to install the packaged
+version of pacman along with its dependencies.
+
+Those packages can be found at:
+
+	https://github.com/kladd/pacman-osx-pkgs
+
+This will allow pacman to update itself in the future.
+EOF
 
