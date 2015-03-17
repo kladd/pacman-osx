@@ -45,7 +45,7 @@ function main()
 		"curl -LO https://github.com/libarchive/libarchive/archive/v2.8.3.tar.gz"
 		"curl -LO http://downloads.sourceforge.net/project/asciidoc/asciidoc/8.6.9/asciidoc-8.6.9.tar.gz"
 		"git clone git://projects.archlinux.org/pacman.git"
-		"curl -O https://github.com/duskwuff/darwin-fakeroot/archive/v1.1.tar.gz"
+		"curl -LO https://github.com/duskwuff/darwin-fakeroot/archive/v1.1.tar.gz"
 		"git clone git://github.com/kladd/pacman-osx-pkgs.git"
 	)
 
@@ -120,10 +120,10 @@ function main()
 	make install
 	popd
 
-	pushd v1.1.tar.gz
-	curl -O https://raw.githubusercontent.com/kladd/pacman-osx-pkgs/master/darwin-fakeroot/darwin-fakeroot.patch
+	pushd $tmpdir/darwin-fakeroot-1.1
+	curl -O https://raw.githubusercontent.com/kladd/pacman-osx-pkgs/osx-10.10/core/darwin-fakeroot/darwin-fakeroot.patch
 	patch -Np0 < darwin-fakeroot.patch
-	make PREFIX=$HOME/pacman-deps install
+	make PREFIX=$tmpdir
 	popd
 
 	# compile Pacman
