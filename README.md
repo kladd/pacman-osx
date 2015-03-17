@@ -88,7 +88,7 @@ curl -O http://pkgconfig.freedesktop.org/releases/pkg-config-0.28.tar.gz
 tar -xzvf pkg-config-0.28.tar.gz
 cd pkg-config-0.28
 
-./configure --prefix=$HOME/pacman-deps
+./configure --prefix=$HOME/pacman-deps --with-internal-glib
 make
 make install
 ```
