@@ -44,27 +44,9 @@ make
 make install
 ```
 
-##### 2. automake
+##### 2. autoconf
 
 Again, included in OS X but without something we need, `aclocal`.
-
-```bash
-# download the source code
-curl -O http://ftp.gnu.org/gnu/automake/automake-1.14.1.tar.gz
-
-# extract the sources and enter the extracted directory
-tar -xzvf automake-1.14.1.tar.gz
-cd automake-1.14.1
-
-# Compile automake into the pacman-deps directory
-./configure --prefix=$HOME/pacman-deps
-make
-make install
-```
-
-##### 3. autoconf
-
-Same story as the other two dependencies so far.
 
 ```bash
 # download source
@@ -75,6 +57,24 @@ tar -xzvf autoconf-2.69.tar.gz
 cd autoconf-2.69
 
 # compile
+./configure --prefix=$HOME/pacman-deps
+make
+make install
+```
+
+##### 3. automake
+
+Same story as the other two dependencies so far.
+
+```bash
+# download the source code
+curl -O http://ftp.gnu.org/gnu/automake/automake-1.14.1.tar.gz
+
+# extract the sources and enter the extracted directory
+tar -xzvf automake-1.14.1.tar.gz
+cd automake-1.14.1
+
+# Compile automake into the pacman-deps directory
 ./configure --prefix=$HOME/pacman-deps
 make
 make install
