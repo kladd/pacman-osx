@@ -169,7 +169,7 @@ again with the darwin-fakeroot package in the
 
 ```bash
 curl -O https://github.com/duskwuff/darwin-fakeroot/archive/v1.1.tar.gz
-curl -O https://raw.githubusercontent.com/kladd/pacman-osx-pkgs/master/darwin-fakeroot/darwin-fakeroot.patch
+curl -O https://raw.githubusercontent.com/kladd/pacman-osx-pkgs/osx-10.10/core/darwin-fakeroot/darwin-fakeroot.patch
 
 patch -Np0 < $srcdir/darwin-fakeroot.patch
 
