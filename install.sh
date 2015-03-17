@@ -50,15 +50,15 @@ function main()
 	)
 
 	extract_sources=(
-		"tar -xJvf gettext-0.19.2.tar.xz"
-		"tar -xzvf automake-1.14.1.tar.gz"
-		"tar -xzvf autoconf-2.69.tar.gz"
-		"tar -xzvf pkg-config-0.28.tar.gz"
-		"tar -xzvf libtool-2.4.2.tar.gz"
-		"tar -xzvf bash-4.3.tar.gz"
-		"tar -xzvf v2.8.3.tar.gz"
-		"tar -xzvf asciidoc-8.6.9.tar.gz"
-		"tar -xzvf v1.1.tar.gz"
+		"tar -xJvf gettext-0.19.2.tar.xz -C $tmpdir"
+		"tar -xzvf automake-1.14.1.tar.gz -C $tmpdir"
+		"tar -xzvf autoconf-2.69.tar.gz -C $tmpdir"
+		"tar -xzvf pkg-config-0.28.tar.gz -C $tmpdir"
+		"tar -xzvf libtool-2.4.2.tar.gz -C $tmpdir"
+		"tar -xzvf bash-4.3.tar.gz -C $tmpdir"
+		"tar -xzvf v2.8.3.tar.gz -C $tmpdir"
+		"tar -xzvf asciidoc-8.6.9.tar.gz -C $tmpdir"
+		"tar -xzvf v1.1.tar.gz -C $tmpdir"
 	)
 
 
