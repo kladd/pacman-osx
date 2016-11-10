@@ -39,7 +39,7 @@ function main()
 		"curl -O https://ftp.gnu.org/gnu/gettext/gettext-0.19.2.tar.xz"
 		"curl -O http://ftp.gnu.org/gnu/automake/automake-1.14.1.tar.gz"
 		"curl -O http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz"
-		"curl -O http://pkgconfig.freedesktop.org/releases/pkg-config-0.28.tar.gz"
+		"curl -O https://pkg-config.freedesktop.org/releases/pkg-config-0.28.tar.gz"
 		"curl -O http://ftp.gnu.org/gnu/libtool/libtool-2.4.2.tar.gz"
 		"curl -O http://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz"
 		"curl -LO https://github.com/libarchive/libarchive/archive/v2.8.3.tar.gz"
