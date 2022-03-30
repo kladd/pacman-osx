@@ -1,210 +1,162 @@
-# Compiling Pacman on OS X 10.10 Yosemite
+# Compiling Pacman on macOS 12.3 Monterey
+
+*DISCLAIMER*: This is hardly the shortest path to success. This is just exactly what I did for my first build on Monterey. I plan to clean it up later.
 
 ### About Pacman
 
 Pacman is the default package manager for the Arch Linux distribution of Linux.
-For more information and tips about using Pacman, visit the
-[Arch wiki](https://wiki.archlinux.org/index.php/pacman).
+For more information about using Pacman, visit the
+[Arch Linux wiki](https://wiki.archlinux.org/index.php/pacman).
 
-### About Pacman on OS X
+### Dependencies
 
-This could be a much easier process if you use Homebrew to install the build
-dependencies for Pacman. I don't recommend keeping both for long, though.
-Having two package managers in use at once is a headache in wait, and it won't
-wait long.
-
-Here I take the long way by compiling each dependency from source. I keep the
-dependencies installed to a directory called "pacman-deps" in my home directory.
-This way, nothing I install will interfere with the OS X default installations.
-
-I've elected to install Pacman to to `/usr/local`. This is also the
-directory I'll be using for packages installed by Pacman.
-
-An automated install script is available here:
-[install.sh](https://github.com/kladd/pacman-osx/blob/master/install.sh)
-
-PKGBUILDs for Pacman on OS X are located in
-[this repo](https://github.com/kladd/pacman-osx-pkgs).
-
-##### 1. gettext
-
-OS X comes with gettext by default but this installation doesn't include `autopoint`.
-
-```bash
-# download the source
-curl -O https://ftp.gnu.org/gnu/gettext/gettext-0.19.2.tar.xz
-
-# extract the sources and enter the extracted directory
-tar -xJvf gettext-0.19.2.tar.xz
-cd gettext-0.19.2
-
-# compile and install gettext to a safe location, I used '$HOME/pacman-deps'
-./configure --prefix=$HOME/pacman-deps
-make
-make install
+I've installed everything to `$HOME/pacman-deps`.
+```
+export PATH=$HOME/pacman-deps/bin:$PATH
 ```
 
-##### 2. autoconf
-
-Again, included in OS X but without something we need, `aclocal`.
-
-```bash
-# download source
-curl -O http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
-
-# extract
-tar -xzvf autoconf-2.69.tar.gz
-cd autoconf-2.69
-
-# compile
-./configure --prefix=$HOME/pacman-deps
-make
-make install
+##### 1. Command line tools
+```
+xcode-select --install
 ```
 
-##### 3. automake
+##### 2. bash >= 4.4
 
-Same story as the other two dependencies so far.
-
-```bash
-# download the source code
-curl -O http://ftp.gnu.org/gnu/automake/automake-1.14.1.tar.gz
-
-# extract the sources and enter the extracted directory
-tar -xzvf automake-1.14.1.tar.gz
-cd automake-1.14.1
-
-# Compile automake into the pacman-deps directory
-./configure --prefix=$HOME/pacman-deps
-make
-make install
+macOS 12 appears to ship with bash 3.2---we need at least 4.4. I'm installing 5.1 because it compiled, and 4.4 didn't.
 ```
-
-##### 4. pkg-config
-
-```bash
-curl -O http://pkgconfig.freedesktop.org/releases/pkg-config-0.28.tar.gz
-
-tar -xzvf pkg-config-0.28.tar.gz
-cd pkg-config-0.28
-
-./configure --prefix=$HOME/pacman-deps --with-internal-glib
-make
-make install
-```
-
-##### 5. libtool
-
-```bash
-curl -O http://ftp.gnu.org/gnu/libtool/libtool-2.4.2.tar.gz
-
-tar -xzvf libtool-2.4.2.tar.gz
-cd libtool-2.4.2
+curl -O https://ftp.gnu.org/gnu/bash/bash-5.1.tar.gz
+tar -xzvf bash-5.1.tar.gz
+cd bash-5.1
 
 ./configure --prefix=$HOME/pacman-deps
+make install
+```
+
+##### 3. pkg-config
+```
+curl -O https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz
+
+tar -xzvf pkg-config-0.29.2.tar.gz
+cd pkg-config-0.29.2
+
+./configure \
+	--disable-debug \
+	--prefix=$HOME/env \
+	--disable-host-tool \
+	--with-internal-glib \
+	--with-pc-path=$HOME/env/lib/pkgconfig \
+	--with-system-include-path=$HOME/env/usr/include
+
 make
 make install
 ```
 
-##### 6. bash >= 4.1.0
+##### 4. cmake
+```
+https://github.com/Kitware/CMake/releases/download/v3.23.0/cmake-3.23.0.tar.gz
+tar -xzvf cmake-3.23.0.tar.gz
+cd cmake-3.23.0
 
-Yosemite still ships with a 3.x version of bash which is not compatible with Pacman.
-We'll need to compile a newer version.
+./bootstrap \
+	--prefix=$HOME/env \
+	--no-system-libs \
+	--parallel=$(sysctl -n hw.physicalcpu) \
+	--system-zlib \
+	--system-bzip2 \
+	--system-curl
 
-```bash
-curl -O http://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz
+make
+make install
+```
 
-tar -xzvf bash-4.3.tar.gz
-cd bash-4.3
-
+##### 5. libarchive
+```
+curl -O https://www.libarchive.org/downloads/libarchive-3.6.0.tar.xz
+tar -xvf libarchive-3.6.0.tar.xz
 ./configure --prefix=$HOME/pacman-deps
+make && make install
+```
+
+##### 6. libcurl
+curl exists on mac, but I haven't investigated using it, so I've reinstalled it to the deps path.
+
+For an SSL backend, macOS ships with libressl, I think which could work, but again I haven't looked into it, so I'm installing openssl. Beware the architecture argument if you are not on an M1 mac. Run configure without the argument and it will spit out the choices. Pick the darwin for your architecture.
+```
+curl -O https://www.openssl.org/source/openssl-1.1.1n.tar.gz
+perl ./Configure --prefix=$HOME/pacman-deps --prefix=$HOME/pacman-deps/etc/openssl darwin64-arm64-cc
 make
 make install
 ```
 
-##### 7. libarchive >= 2.8.0
-
-Yosemite comes with libarchive 2.8.3 but doesn't include the header files we need,
-so we'll have to download the source code for the version of libarchive already
-installed to get them.
-
-```bash
-curl -LO https://github.com/libarchive/libarchive/archive/v2.8.3.tar.gz
-tar -xzvf v2.8.3.tar.gz
-cd libarchive-2.8.3
-
-# One extra step here, autogen requires some of the packages we've compiled so far
-PATH=$HOME/pacman-deps/bin:$PATH ./build/autogen.sh
-./configure --prefix=$HOME/pacman-deps
+Then install curl.
+```
+# meta metamates me
+curl -O https://curl.se/download/curl-7.82.0.tar.bz2
+./configure --prefix=$HOME/pacman-deps --with-openssl=$HOME/pacman-deps/etc/openssl
 make
 make install
+
+# I accidentally made openssl prefix as /etc/openssl, TODO. workaround:
+export PKG_CONFIG_PATH=$HOME/pacman-deps/etc/openssl/lib/pkgconfig:$PKG_CONFIG_PATH
 ```
 
-##### 8. asciidoc
-```bash
-curl -LO http://downloads.sourceforge.net/project/asciidoc/asciidoc/8.6.9/asciidoc-8.6.9.tar.gz
+### Building pacman
 
-tar -xzvf asciidoc-8.6.9.tar.gz
-cd asciidoc-8.6.8
-
-./configure --prefix=$HOME/pacman-deps
-make
-make install
 ```
-
-##### 9. fakeroot
-
-Every available version of fakeroot for OS X seems not to compile on Yosemite,
-or at least not for me. [Darwin fakeroot](https://github.com/duskwuff/darwin-fakeroot),
-however, required the least patching.
-So these instructions as well as any packages I create will assume this
-implementation of fakeroot.
-
-This is not actually necessary to compile Pacman. But, it is necessary
-to build packages once Pacman has been installed. So, it's recommended that you
-install this either before or after compiling Pacman for the first time, then
-again with the darwin-fakeroot package in the
-[pacman-osx-pkgs repo](http://github.com/kladd/pacman-osx-pkgs).
-
-
-```bash
-curl -O https://github.com/duskwuff/darwin-fakeroot/archive/v1.1.tar.gz
-curl -O https://raw.githubusercontent.com/kladd/pacman-osx-pkgs/osx-10.10/core/darwin-fakeroot/darwin-fakeroot.patch
-
-patch -Np0 < $srcdir/darwin-fakeroot.patch
-
-# Defaults to /usr/local
-make PREFIX=$HOME/pacman-deps install
-```
-
-### Downloading the Pacman source
-
-```bash
-git clone git://projects.archlinux.org/pacman.git
+git clone https://gitlab.archlinux.org/pacman/pacman.git
 cd pacman
+git checkout v6.0.1
 ```
 
-### Finally, compiling Pacman
+macOS has `sys/statvfs.h`, but `mount.h` expects a `statfs` struct or something. I don't know, I'm not thinking about it right now (TODO). Apply this patch:
+```
+{ cat <<EOF
+diff --git a/meson.build b/meson.build
+index 76b9d2aa..e85908ea 100644
+--- a/meson.build
++++ b/meson.build
+@@ -125,7 +125,6 @@ foreach header : [
+     'sys/mnttab.h',
+     'sys/mount.h',
+     'sys/param.h',
+-    'sys/statvfs.h',
+     'sys/types.h',
+     'sys/ucred.h',
+     'termios.h',
+@@ -152,7 +151,6 @@ endforeach
 
-```bash
-export LIBARCHIVE_CFLAGS="-I${HOME}/pacman-deps/include"
-export LIBARCHIVE_LIBS="-larchive"
-export LIBCURL_CFLAGS="-I/usr/include/curl"
-export LIBCURL_LIBS="-lcurl"
-
-./configure --prefix=/usr/local \
-            --enable-doc \
-            --with-scriptlet-shell=$HOME/pacamn-deps/bin/bash \
-            --with-curl
-make
-make -C contrib
-make install
-make -C contrib install
+ foreach member : [
+     ['struct stat', 'st_blksize', '''#include <sys/stat.h>'''],
+-    ['struct statvfs', 'f_flag', '''#include <sys/statvfs.h>'''],
+     ['struct statfs', 'f_flags', '''#include <sys/param.h>
+                                     #include <sys/mount.h>'''],
+   ]
+EOF
+} | git apply -
 ```
 
-### Fallacies & Pitfalls
+Build and install.
+```
+meson build \
+	--prefix=$HOME/pacman-deps/usr \
+	--sysconfdir=$HOME/pacman-deps/etc \
+	--localstatedir=$HOME/pacman-deps/var \
+	--buildtype=plain \
+	-Dscriptlet-shell=$HOME/pacman-deps/bin/bash
+meson compile -C build
+meson install -C build
+```
 
-- Once you've started using pacman to install packages, some of the software
-  we built just now will need to be overridden by using the `--force` option
-  with pacman.
+##### 3. Prosper
+```
+kladd@kvm pacman % $HOME/pacman-deps/usr/bin/pacman --version
 
+ .--.                  Pacman v6.0.1 - libalpm v13.0.1
+/ _.-' .-.  .-.  .-.   Copyright (C) 2006-2021 Pacman Development Team
+\  '-. '-'  '-'  '-'   Copyright (C) 2002-2006 Judd Vinet
+ '--'
+                       This program may be freely redistributed under
+                       the terms of the GNU General Public License.
+```
+
+I haven't verified that this installation does anything more than print its own version, but it's a start.
