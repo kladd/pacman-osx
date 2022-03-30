@@ -119,7 +119,7 @@ Build and install.
 ```
 # TODO: Disabled i18n to avoid library dependency,
 meson build \
-	--prefix=$HOME/pacman-deps/usr \
+	--prefix=$HOME/pacman-deps \
 	--sysconfdir=$HOME/pacman-deps/etc \
 	--localstatedir=$HOME/pacman-deps/var \
 	--buildtype=plain \
