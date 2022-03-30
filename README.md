@@ -45,25 +45,11 @@ make
 make install
 ```
 
-#### 4. cmake
-```
-https://github.com/Kitware/CMake/releases/download/v3.23.0/cmake-3.23.0.tar.gz
-tar -xzvf cmake-3.23.0.tar.gz
-cd cmake-3.23.0
 
-./bootstrap \
-	--prefix=$HOME/env \
-	--no-system-libs \
-	--parallel=$(sysctl -n hw.physicalcpu) \
-	--system-zlib \
-	--system-bzip2 \
-	--system-curl
+#### 4. libarchive
 
-make
-make install
-```
+libarchive is included in macOS but I haven't looked into using it. Here it's compiled from source.
 
-#### 5. libarchive
 ```
 curl -O https://www.libarchive.org/downloads/libarchive-3.6.0.tar.xz
 tar -xvf libarchive-3.6.0.tar.xz
@@ -71,30 +57,15 @@ tar -xvf libarchive-3.6.0.tar.xz
 make && make install
 ```
 
-#### 6. libcurl
-curl exists on mac, but I haven't investigated using it, so I've reinstalled it to the deps path.
-
-For an SSL backend, macOS ships with libressl, I think. That could work, but again I haven't looked into it, so I'm installing openssl. Beware the architecture argument if you are not on an M1 mac. Run configure without the argument and it will spit out the choices. Pick the darwin for your architecture.
+#### 5. openssl
 ```
 curl -O https://www.openssl.org/source/openssl-1.1.1n.tar.gz
-perl ./Configure --prefix=$HOME/pacman-deps --prefix=$HOME/pacman-deps/etc/openssl darwin64-arm64-cc
+perl ./Configure --prefix=$HOME/pacman-deps darwin64-arm64-cc
 make
 make install
 ```
 
-Install curl.
-```
-# meta metamates me
-curl -O https://curl.se/download/curl-7.82.0.tar.bz2
-./configure --prefix=$HOME/pacman-deps --with-openssl=$HOME/pacman-deps/etc/openssl
-make
-make install
-
-# I accidentally made openssl prefix as /etc/openssl, TODO. workaround:
-export PKG_CONFIG_PATH=$HOME/pacman-deps/etc/openssl/lib/pkgconfig:$PKG_CONFIG_PATH
-```
-
-#### 7. meson and ninja
+#### 6. meson and ninja
 
 Pacman uses meson and ninja build systems now...ok. Install them.
 
