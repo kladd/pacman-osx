@@ -152,12 +152,13 @@ EOF
 
 Build and install.
 ```
+# TODO: Disabled i18n to avoid library dependency,
 meson build \
 	--prefix=$HOME/pacman-deps/usr \
 	--sysconfdir=$HOME/pacman-deps/etc \
 	--localstatedir=$HOME/pacman-deps/var \
 	--buildtype=plain \
-	-Dscriptlet-shell=$HOME/pacman-deps/bin/bash
+	-Di18n=false -Dscriptlet-shell=$HOME/pacman-deps/bin/bash
 meson compile -C build
 meson install -C build
 ```
