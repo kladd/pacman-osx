@@ -22,7 +22,7 @@ xcode-select --install
 
 #### 2. bash >= 4.4
 
-macOS 12 appears to ship with bash 3.2---we need at least 4.4. I'm installing 5.1 because it compiled with these flags, and 4.4 didn't.
+macOS 12 appears to ship with bash 3.2—pacman requests at least 4.4. I'm installing 5.1 because it compiled with these flags, and 4.4 didn't.
 ```
 curl -O https://ftp.gnu.org/gnu/bash/bash-5.1.tar.gz
 tar -xzvf bash-5.1.tar.gz
@@ -88,7 +88,7 @@ make
 make install
 ```
 
-Then install curl.
+Install curl.
 ```
 # meta metamates me
 curl -O https://curl.se/download/curl-7.82.0.tar.bz2
@@ -100,6 +100,21 @@ make install
 export PKG_CONFIG_PATH=$HOME/pacman-deps/etc/openssl/lib/pkgconfig:$PKG_CONFIG_PATH
 ```
 
+#### 7. meson and ninja
+
+Pacman uses meson and ninja build systems now...ok. Install them.
+
+```
+python3 -m pip install meson
+python3 -m pip install ninja
+```
+
+The pip install bin directory is not on the `PATH` by default, but the location is python version dependant. `python3 --version` will give you a semver number, but the path uses only the major and minor versi...anyway, this path might not exist if your python version is different, but add `meson` to your `PATH`, or otherwise find out where it is.
+
+```
+export PATH=$HOME/Library/Python/3.8/bin:$PATH
+```
+
 ### Building pacman
 
 ```
@@ -108,7 +123,7 @@ cd pacman
 git checkout v6.0.1
 ```
 
-macOS has `sys/statvfs.h`, but `mount.h` expects a `statfs` struct or something. I don't know, I'm not thinking about it right now (TODO). Apply this patch:
+macOS has `sys/statvfs.h`, but `mount.h` expects a `statfs` struct or something. I don't know, but I'm not thinking about it right now (TODO). Apply this patch:
 ```
 { cat <<EOF
 diff --git a/meson.build b/meson.build
