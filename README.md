@@ -26,6 +26,7 @@ macOS 12 appears to ship with bash 3.2—pacman requests at least 4.4. I'm insta
 ```
 curl -O https://ftp.gnu.org/gnu/bash/bash-5.1.tar.gz
 tar -xzvf bash-5.1.tar.gz
+
 cd bash-5.1
 
 ./configure --prefix=$HOME/pacman-deps
@@ -35,18 +36,11 @@ make install
 #### 3. pkg-config
 ```
 curl -O https://pkgconfig.freedesktop.org/releases/pkg-config-0.29.2.tar.gz
-
 tar -xzvf pkg-config-0.29.2.tar.gz
+
 cd pkg-config-0.29.2
 
-./configure \
-	--disable-debug \
-	--prefix=$HOME/env \
-	--disable-host-tool \
-	--with-internal-glib \
-	--with-pc-path=$HOME/env/lib/pkgconfig \
-	--with-system-include-path=$HOME/env/usr/include
-
+./configure --disable-debug --prefix=$HOME/pacman-deps --with-internal-glib
 make
 make install
 ```
