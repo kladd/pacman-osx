@@ -134,6 +134,8 @@ EOF
 
 Build and install.
 ```sh
+export PKG_CONFIG_PATH=$HOME/pacman-deps/lib/pkgconfig:$PKG_CONFIG_PATH
+
 # TODO: Disabled i18n to avoid library dependency,
 meson build \
 	--prefix=$HOME/pacman-deps \
