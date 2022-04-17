@@ -10,9 +10,10 @@ For more information about using Pacman, visit the
 
 ### Dependencies
 
-I've installed everything to `$HOME/pacman-deps`.
+I've installed everything to `$HOME/.bootstrap-pacman`.
 ```sh
-export PATH=$HOME/pacman-deps/bin:$PATH
+export BOOTSTRAP=$HOME/.bootstrap-pacman
+export PATH=$BOOTSTRAP/bin:$PATH
 
 ```
 
@@ -31,7 +32,7 @@ tar -xzvf bash-5.1.tar.gz
 
 cd bash-5.1
 
-./configure --prefix=$HOME/pacman-deps
+./configure --prefix=$BOOTSTRAP
 make install
 
 ```
@@ -43,7 +44,7 @@ tar -xzvf pkg-config-0.29.2.tar.gz
 
 cd pkg-config-0.29.2
 
-./configure --disable-debug --prefix=$HOME/pacman-deps --with-internal-glib
+./configure --disable-debug --prefix=$BOOTSTRAP --with-internal-glib
 make
 make install
 
@@ -60,7 +61,7 @@ tar -xvf libarchive-3.6.0.tar.xz
 
 cd libarchive-3.6.0
 
-./configure --prefix=$HOME/pacman-deps
+./configure --prefix=$BOOTSTRAP
 make && make install
 
 ```
@@ -72,7 +73,7 @@ tar xzvf openssl-1.1.1n.tar.gz
 
 cd openssl-1.1.1n
 
-perl ./Configure --prefix=$HOME/pacman-deps darwin64-arm64-cc
+perl ./Configure --prefix=$BOOTSTRAP darwin64-arm64-cc
 make
 make install
 
@@ -106,7 +107,7 @@ git checkout v6.0.1
 
 macOS has `sys/statvfs.h`, but `mount.h` expects a `statfs` struct or something. I don't know, but I'm not thinking about it right now (TODO). Apply this patch:
 ```sh
-{ cat <<EOF
+patch -p1 <<'EOF'
 diff --git a/meson.build b/meson.build
 index 76b9d2aa..e85908ea 100644
 --- a/meson.build
@@ -120,37 +121,75 @@ index 76b9d2aa..e85908ea 100644
      'sys/ucred.h',
      'termios.h',
 @@ -152,7 +151,6 @@ endforeach
-
+ 
  foreach member : [
      ['struct stat', 'st_blksize', '''#include <sys/stat.h>'''],
 -    ['struct statvfs', 'f_flag', '''#include <sys/statvfs.h>'''],
      ['struct statfs', 'f_flags', '''#include <sys/param.h>
                                      #include <sys/mount.h>'''],
    ]
+
 EOF
-} | git apply -
+
+```
+
+patch scripts to use the BSD checksums
+
+```sh
+patch -p1 <<'EOF'
+diff --git a/scripts/makepkg.sh.in b/scripts/makepkg.sh.in
+index e58edfa1..fe1a0ed8 100644
+--- a/scripts/makepkg.sh.in
++++ b/scripts/makepkg.sh.in
+@@ -643,7 +643,7 @@ write_buildinfo() {
+ 
+ 	write_kv_pair "pkgarch" "$pkgarch"
+ 
+-	local sum="$(sha256sum "${BUILDFILE}")"
++	local sum="$(shasum -a 256 "${BUILDFILE}")"
+ 	sum=${sum%% *}
+ 	write_kv_pair "pkgbuild_sha256sum" $sum
+ 
+diff --git a/scripts/repo-add.sh.in b/scripts/repo-add.sh.in
+index d3938396..a8683be7 100644
+--- a/scripts/repo-add.sh.in
++++ b/scripts/repo-add.sh.in
+@@ -278,9 +278,9 @@ db_write_entry() {
+ 
+ 	# compute checksums
+ 	msg2 "$(gettext "Computing checksums...")"
+-	md5sum=$(md5sum "$pkgfile")
++	md5sum=$(md5 -r "$pkgfile")
+ 	md5sum=${md5sum%% *}
+-	sha256sum=$(sha256sum "$pkgfile")
++	sha256sum=$(shasum -a 256 "$pkgfile")
+ 	sha256sum=${sha256sum%% *}
+ 
+ 	# remove an existing entry if it exists, ignore failures
+
+
+EOF
 
 ```
 
 Build and install.
 ```sh
-export PKG_CONFIG_PATH=$HOME/pacman-deps/lib/pkgconfig:$PKG_CONFIG_PATH
+export PKG_CONFIG_PATH=$BOOTSTRAP/lib/pkgconfig:$PKG_CONFIG_PATH
 
 # TODO: Disabled i18n to avoid library dependency,
 meson build \
-	--prefix=$HOME/pacman-deps \
-	--sysconfdir=$HOME/pacman-deps/etc \
-	--localstatedir=$HOME/pacman-deps/var \
+	--prefix=$BOOTSTRAP \
+	--sysconfdir=$BOOTSTRAP/etc \
+	--localstatedir=$BOOTSTRAP/var \
 	--buildtype=plain \
-	-Di18n=false -Dscriptlet-shell=$HOME/pacman-deps/bin/bash
+	-Di18n=false -Dscriptlet-shell=$BOOTSTRAP/bin/bash
 meson compile -C build
 meson install -C build
 
 ```
 
-#### 3. Prosper
 ```
-kladd@kvm pacman % $HOME/pacman-deps/usr/bin/pacman --version
+kladd@kvm pacman % $BOOTSTRAP/usr/bin/pacman --version
 
  .--.                  Pacman v6.0.1 - libalpm v13.0.1
 / _.-' .-.  .-.  .-.   Copyright (C) 2006-2021 Pacman Development Team
@@ -160,4 +199,111 @@ kladd@kvm pacman % $HOME/pacman-deps/usr/bin/pacman --version
                        the terms of the GNU General Public License.
 ```
 
-I haven't verified that this installation does anything more than print its own version, but it's a start.
+### makepkg dependencies
+
+#### 1. libtool (for fakeroot)
+
+```
+curl -LO https://ftpmirror.gnu.org/libtool/libtool-2.4.6.tar.gz
+tar -xzvf libtool-2.4.6.tar.gz
+
+cd libtool-2.4.6
+
+./configure --prefix=$BOOTSTRAP
+make
+make install
+
+```
+
+#### 2. autoconf
+
+```
+curl -LO https://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
+tar -xzvf autoconf-2.69.tar.gz
+
+cd autoconf-2.69
+
+./configure --prefix=$BOOTSTRAP
+make install
+
+```
+
+#### 3. automake
+
+```
+curl -LO https://ftp.gnu.org/gnu/automake/automake-1.16.tar.gz
+tar -xzvf automake-1.16.tar.gz
+cd automake-1.16
+
+./configure --prefix=$BOOTSTRAP
+make install
+
+```
+
+#### 4. update autoconf
+
+`automake` 1.16 doesn't build with `autoconf` 2.71, but 2.71 is required to build fakeroot.
+
+```
+curl -LO https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz
+tar -xzvf autoconf-2.71.tar.gz
+
+cd autoconf-2.71
+
+./configure --prefix=$BOOTSTRAP
+make install
+
+```
+
+#### 5. fakeroot
+
+```
+git clone https://salsa.debian.org/clint/fakeroot.git
+
+cd fakeroot
+
+```
+
+Apply another patch
+```
+patch -p1 <<'EOF'
+diff --git a/Makefile.am b/Makefile.am
+index 76210b5..958205b 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1,6 +1,6 @@
+ AUTOMAKE_OPTIONS=foreign
+ ACLOCAL_AMFLAGS = -I build-aux
+-SUBDIRS=doc scripts test
++SUBDIRS=scripts test
+ 
+ noinst_LTLIBRARIES = libcommunicate.la libmacosx.la
+ libcommunicate_la_SOURCES = communicate.c
+diff --git a/configure.ac b/configure.ac
+index f5bfafe..57629f1 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -606,8 +606,6 @@ AM_CONDITIONAL([MACOSX], [test x$macosx = xtrue])
+ AC_CONFIG_FILES([
+    Makefile
+    scripts/Makefile
+-   doc/Makefile
+-   doc/de/Makefile doc/es/Makefile doc/fr/Makefile doc/nl/Makefile doc/pt/Makefile doc/sv/Makefile
+    test/Makefile test/defs])
+ AC_OUTPUT
+ 
+EOF
+
+```
+
+Compile and install fakeroot
+
+```
+test -d build-aux || mkdir build-aux
+test -f ltmain.sh || libtoolize --install --force
+autoreconf --force --verbose --install
+
+./configure --prefix=$BOOTSTRAP
+make install
+
+```
