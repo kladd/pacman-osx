@@ -172,6 +172,27 @@ EOF
 
 ```
 
+patch makepkg to use the BSD touch date format
+
+```sh
+patch -p1 <<'EOF'
+index fe1a0ed8..9870129a 100644
+--- a/scripts/makepkg.sh.in
++++ b/scripts/makepkg.sh.in
+@@ -83,7 +83,7 @@ VERIFYSOURCE=0
+ if [[ -n $SOURCE_DATE_EPOCH ]]; then
+ 	REPRODUCIBLE=1
+ else
+-	SOURCE_DATE_EPOCH=$(date +%s)
++	SOURCE_DATE_EPOCH=$(date +%Y-%m-%dT%H:%M:%S)
+ fi
+ export SOURCE_DATE_EPOCH
+
+
+EOF
+
+```
+
 Build and install.
 ```sh
 export PKG_CONFIG_PATH=$BOOTSTRAP/lib/pkgconfig:$PKG_CONFIG_PATH
