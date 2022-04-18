@@ -176,7 +176,24 @@ patch makepkg to use the BSD touch date format
 
 ```sh
 patch -p1 <<'EOF'
-index fe1a0ed8..9870129a 100644
+diff --git a/scripts/libmakepkg/lint_config/source_date_epoch.sh.in b/scripts/libmakepkg/lint_config/source_date_epoch.sh.in
+index e5031fc7..efe50812 100755
+--- a/scripts/libmakepkg/lint_config/source_date_epoch.sh.in
++++ b/scripts/libmakepkg/lint_config/source_date_epoch.sh.in
+@@ -29,9 +29,9 @@ lint_config_functions+=('lint_source_date_epoch')
+
+
+ lint_source_date_epoch() {
+-	if [[ $SOURCE_DATE_EPOCH = *[^[:digit:]]* ]]; then
++	if [[ $SOURCE_DATE_EPOCH = *[^[:digit:]\-T:]* ]]; then
+ 		error "$(gettext "%s contains invalid characters: %s")" \
+-			"\$SOURCE_DATE_EPOCH" "${SOURCE_DATE_EPOCH//[[:digit:]]}"
++			"\$SOURCE_DATE_EPOCH" "${SOURCE_DATE_EPOCH//[[:digit:]\-T:]}"
+ 		return 1
+ 	fi
+ }
+diff --git a/scripts/makepkg.sh.in b/scripts/makepkg.sh.in
+index fe1a0ed8..dd51aec6 100644
 --- a/scripts/makepkg.sh.in
 +++ b/scripts/makepkg.sh.in
 @@ -83,7 +83,7 @@ VERIFYSOURCE=0
@@ -184,9 +201,34 @@ index fe1a0ed8..9870129a 100644
  	REPRODUCIBLE=1
  else
 -	SOURCE_DATE_EPOCH=$(date +%s)
-+	SOURCE_DATE_EPOCH=$(date +%Y-%m-%dT%H:%M:%S)
++	SOURCE_DATE_EPOCH=$(date -u +'%FT%T')
  fi
  export SOURCE_DATE_EPOCH
+
+@@ -719,13 +719,13 @@ create_package() {
+ 	[[ -f $pkg_file.sig ]] && rm -f "$pkg_file.sig"
+
+ 	# ensure all elements of the package have the same mtime
+-	find . -exec touch -h -d @$SOURCE_DATE_EPOCH {} +
++	find . -exec touch -h -d $SOURCE_DATE_EPOCH {} +
+
+ 	msg2 "$(gettext "Generating .MTREE file...")"
+ 	list_package_files | LANG=C bsdtar -cnf - --format=mtree \
+ 		--options='!all,use-set,type,uid,gid,mode,time,size,md5,sha256,link' \
+ 		--null --files-from - --exclude .MTREE | gzip -c -f -n > .MTREE
+-	touch -d @$SOURCE_DATE_EPOCH .MTREE
++	touch -d $SOURCE_DATE_EPOCH .MTREE
+
+ 	msg2 "$(gettext "Compressing package...")"
+ 	# TODO: Maybe this can be set globally for robustness
+@@ -1435,7 +1435,7 @@ if (( !REPKG )); then
+ 		if (( REPRODUCIBLE )); then
+ 			# We have activated reproducible builds, so unify source times before
+ 			# building
+-			find "$srcdir" -exec touch -h -d @$SOURCE_DATE_EPOCH {} +
++			find "$srcdir" -exec touch -h -d $SOURCE_DATE_EPOCH {} +
+ 		fi
+ 	fi
 
 
 EOF
