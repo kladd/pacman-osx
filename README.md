@@ -264,7 +264,7 @@ kladd@kvm pacman % $BOOTSTRAP/usr/bin/pacman --version
 
 #### 1. libtool (for fakeroot)
 
-```
+```sh
 curl -LO https://ftpmirror.gnu.org/libtool/libtool-2.4.6.tar.gz
 tar -xzvf libtool-2.4.6.tar.gz
 
@@ -278,7 +278,7 @@ make install
 
 #### 2. autoconf
 
-```
+```sh
 curl -LO https://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
 tar -xzvf autoconf-2.69.tar.gz
 
@@ -305,7 +305,7 @@ make install
 
 `automake` 1.16 doesn't build with `autoconf` 2.71, but 2.71 is required to build fakeroot.
 
-```
+```sh
 curl -LO https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz
 tar -xzvf autoconf-2.71.tar.gz
 
@@ -318,7 +318,7 @@ make install
 
 #### 5. fakeroot
 
-```
+```sh
 git clone https://salsa.debian.org/clint/fakeroot.git
 
 cd fakeroot
@@ -326,7 +326,7 @@ cd fakeroot
 ```
 
 Apply another patch
-```
+```sh
 patch -p1 <<'EOF'
 diff --git a/Makefile.am b/Makefile.am
 index 76210b5..958205b 100644
@@ -359,7 +359,7 @@ EOF
 
 Compile and install fakeroot
 
-```
+```sh
 test -d build-aux || mkdir build-aux
 test -f ltmain.sh || libtoolize --install --force
 autoreconf --force --verbose --install
