@@ -167,7 +167,6 @@ index d3938396..a8683be7 100644
  
  	# remove an existing entry if it exists, ignore failures
 
-
 EOF
 
 ```
@@ -229,7 +228,6 @@ index fe1a0ed8..dd51aec6 100644
 +			find "$srcdir" -exec touch -h -d $SOURCE_DATE_EPOCH {} +
  		fi
  	fi
-
 
 EOF
 
